@@ -1,46 +1,32 @@
-'''
-Unrestricted Hartree-Fock using PySCF intergrals
-Author: Hung Q. Pham (UMN, phamx494@umn.edu)
-'''
+import numpy
+from pyscf import gto, scf, mcscf
 
-import numpy as np
-import scipy as sp
-from pyscf import gto, scf, ao2mo
-from functools import reduce
+mol = gto.M(
+    atom = 'Ca 0 0 0; H 0 0 1.2',
+    basis = 'ccpvdz',
+    spin = 1)
+myhf = scf.RHF(mol).run()
 
-mol = gto.M()
-mol.atom =("""
- Ca                0.00000000    0.00000000    0.00000000
- H                 2.72539390    0.00000000    0.00000000
-""")
+# 6 orbitals, 8 electrons
+mycas = mcscf.CASSCF(myhf, 6, 3)
 
-mol.spin = 1
-mol.basis = '6-31g'
-mol.build()
-Norb = mol.nao_nr()
+#
+# Freeze the two innermost oxygen 1s orbitals in the orbital
+# optimization
+#
+mycas.frozen = 16
+mycas.kernel()
 
-#UHF convergent criteria
-e_conv = 1.e-8
-d_conv = 1.e-8
-if (mol.nelectron %2 != 0):
-	nel_a = int(0.5 * (mol.nelectron + 1))
-	nel_b = int(0.5 * (mol.nelectron - 1))
-else:
-	nel_a = int(0.5 * mol.nelectron)
-	nel_b = nel_a
+#
+# Freeze orbitals based on the list of indices.  Two HF core orbitals and two HF
+# virtual orbitals are excluded from CASSCF optimization.
+#
+mycas.frozen = [0,1,26,27]
+mycas.kernel()
 
-damp_value = 0.20
-
-
-
-mf = scf.UHF(mol)
-mf.init_guess = '1e'
-mf.max_cycle = 200
-mf.diis_start_cycle=200
-mf.diis = False
-mf.damp = damp_value #using damping instead of DIIS
-mf.kernel()
-
-
-pyscf_energy = mf.e_tot
-print("Energy matches PySCF %s" % np.allclose(pyscf_energy, E_total))
+#
+# Partially freeze the active space so that the frozen orbitals are always in
+# the active space.  It can help CASSCF converge to reasonable solution.
+#
+mycas.frozen = [5,6,7,8]
+mycas.kernel()

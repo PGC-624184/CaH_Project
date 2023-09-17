@@ -139,6 +139,8 @@ dist = abs(curves[3][2]-curves[1][2])
 # Energy in Hartrees
 E_h = (ħ*c_0*α)/(a_0) |> u"eV"
 
+
+dist = 0.1024
 # Line core for CaH 
 λ_habli = c_0/((dist*E_h)/h) |> u"nm"
 
