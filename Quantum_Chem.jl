@@ -140,9 +140,11 @@ dist = abs(curves[3][2]-curves[1][2])
 E_h = (ħ*c_0*α)/(a_0) |> u"eV"
 
 
-dist = 0.1024
+dist = 0.0940738008715698
 # Line core for CaH 
-λ_habli = c_0/((dist*E_h)/h) |> u"nm"
+λ_habli = c_0*h/((E_h)) |> u"nm"
+
+c_0/((2.10113u"eV")/h) |> u"nm"
 
 # Ca I normal line core (NIST Transitional database)
 λ=422.673u"nm"
