@@ -142,7 +142,7 @@ E_h = (ħ*c_0*α)/(a_0) |> u"eV"
 
 dist = 0.0940738008715698
 # Line core for CaH 
-λ_habli = c_0*h/((E_h)) |> u"nm"
+λ_habli = c_0*h/((dist*E_h)) |> u"nm"
 
 c_0/((2.10113u"eV")/h) |> u"nm"
 
@@ -187,11 +187,17 @@ r_0_H2 = (4π .*n_H2./3).^(-1/3) .|> u"angstrom"
 r_0_HI = (4π .*n_HI./3).^(-1/3) .|> u"angstrom"
 r_0_Ca = (4π .*n_Ca./3).^(-1/3) .|> u"angstrom"
 
+# number of particles in mean Ca interparticle sphere
+n_s_HI = 4π/3 .*r_0_Ca.^3 .*n_HI .|> upreferred
+n_s_H2 = 4π/3 .*r_0_Ca.^3 .*n_H2 .|> upreferred
+n_s_Ca = 4π/3 .*r_0_Ca.^3 .*n_Ca .|> upreferred
+
+
 # This means that we expect to see Calcium particles within out Debye sphere
 @assert r_0_H2 < D_H2
 
 # Range of interaction
-r = (0.1:8:400)u"nm"
+r = (0.01:0.5:100)u"nm"
 
 β = (r_0_HI[1]./r).^2 .|> upreferred
 
@@ -203,7 +209,11 @@ Linear_Stark = W.(β)
 # Probability function of H2 in range (r,r+dr), not including Debye shielding
 W(r,N) = 4π*r^2*N*exp(-4/3*π*r^3*N)
 
+using Plots
 
+sphere_prob = W.(r,n_H2[1]) .|> u"cm^(-1)"
+sphere_prob =sphere_prob./sum(sphere_prob)
+plot(r,sphere_prob)
 
 
 
@@ -219,45 +229,3 @@ Holtz = W_H.(β)
 n=3
 plot(r[n:end],Holtz[n:end],label="Holtzmark Distribution based of Debye Shielding")
 plot!(r[n:end],Linear_Stark[n:end],label="Linear Stark Effect")
-
-
-cumsum(Holtz[n:end])
-
-using FastGaussQuadrature
-
-x,w = gausslegendre(100)
-F_vals = (x.+1)./2
-W_vals = W.(F_vals)
-
-I = sum(W_vals)
-
-using Plots
-scatter(F_vals,W_vals./I)
-
-F_vals[findmax(W_vals)[2]]
-using SpecialFunctions
-γ(p) = (((2π^2)/p)*(3*(p+3)*gamma(3/p)*sin(3π/(2*p))))^(p/3)
-γ(6)
-
-
-
-
-
-
-@reset
-
-@molecule {
-   0.0 0.0 0.0
-  H 5.0 0.0 0.0
-}
-@set {
-  basis cc-pvdz
-  reference rhf
-  charge -1
-  multiplicity 3
-}
-sol = @energy rhf
-sol.orbitals.C
-using Plots
-heatmap(sol.orbitals.C)
-plot(sol.orbitals.eps)
