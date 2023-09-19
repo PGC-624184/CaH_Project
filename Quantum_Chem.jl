@@ -144,7 +144,7 @@ dist = 0.0940738008715698
 # Line core for CaH 
 λ_habli = c_0*h/((dist*E_h)) |> u"nm"
 
-c_0/((2.10113u"eV")/h) |> u"nm"
+c_0/((2.9u"eV")/h) |> u"nm"
 
 # Ca I normal line core (NIST Transitional database)
 λ=422.673u"nm"
@@ -175,7 +175,7 @@ n_H2 = p_H2./(k_B*T) .|> u"cm^(-3)"
 # This is the debye length
 D_HI = sqrt.(ε_0*k_B .*T ./(n_HI .*e^2)) .|> u"angstrom"
 D_H2 = sqrt.(ε_0*k_B .*T ./(n_H2 .*e^2)) .|> u"angstrom"
-D_Ca = sqrt.(ε_0*k_B .*T ./(n_Ca .*e^2)) .|> u"angstrom"
+D_Ca = sqrt.(ε_0*k_B .*T ./(n_Ca .*e^2)) .|> u"m"
 
 # number of Ca particles in Debye Sphere
 δ_HI = 4π/3 .*D_Ca.^3 .*n_HI .|> upreferred
@@ -197,7 +197,7 @@ n_s_Ca = 4π/3 .*r_0_Ca.^3 .*n_Ca .|> upreferred
 @assert r_0_H2 < D_H2
 
 # Range of interaction
-r = (0.01:0.5:100)u"nm"
+
 
 β = (r_0_HI[1]./r).^2 .|> upreferred
 
@@ -210,10 +210,22 @@ Linear_Stark = W.(β)
 W(r,N) = 4π*r^2*N*exp(-4/3*π*r^3*N)
 
 using Plots
-
+r = (0.01:0.1:60)u"angstrom"
 sphere_prob = W.(r,n_H2[1]) .|> u"cm^(-1)"
-sphere_prob =sphere_prob./sum(sphere_prob)
+sphere_prob1 = W.(r,n_H2[2]) .|> u"cm^(-1)"
+sphere_prob2 = W.(r,n_H2[3]) .|> u"cm^(-1)"
+sphere_prob3 = W.(r,n_H2[4]) .|> u"cm^(-1)"
+sphere_prob4 = W.(r,n_H2[5]) .|> u"cm^(-1)"
+sphere_prob = sphere_prob./sum(sphere_prob)
+sphere_prob1 = sphere_prob1./sum(sphere_prob1)
+sphere_prob2 = sphere_prob2./sum(sphere_prob2)
+sphere_prob3 = sphere_prob3./sum(sphere_prob3)
+sphere_prob4 = sphere_prob4./sum(sphere_prob4)
 plot(r,sphere_prob)
+plot!(r,sphere_prob1)
+plot!(r,sphere_prob2)
+plot!(r,sphere_prob3)
+plot(r,sphere_prob4)
 
 
 
