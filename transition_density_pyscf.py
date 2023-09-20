@@ -12,22 +12,23 @@ for j in range(0,5): # iterate over excited states
     for r in reversed(bond): # iterate over bond lengths. Start out and work in for stability
         # Define the CaH molecule with the ccpvdz basis set
         mol = gto.M(atom=[['Ca', 0, 0, 0],
-                          ['H', r, 0, 0],],
+                          ['H', r, 0, 0],
+                          ['H' ,r, 0 , 0.737]],
                       basis='ccpvdz',
-                      spin = 1
+                      spin = 0
                     )
         # Reduced Hartree Fock solution as an initial case           
         mf = scf.RHF(mol).run()
         # define the excited state
         state_id = j
-        # Run the Complete Active Space SCF. 6 spaces with 4 electrons
-        mc = mcscf.CASSCF(mf, 4, 3).state_specific_(state_id)
-        mc.verbose = 4
+        # Run the Complete Active Space SCF. 3 spaces with 3 electrons
+        mc = mcscf.CASSCF(mf, 4, 4).state_specific_(state_id)
+        mc.verbose = 2
         # For the excited states, need to change the solver
         if state_id > 0:
             mc.kernel() # excited state solve
             mo = mc.mo_coeff # molecular orbitals
-            mc.fcisolver.nroots = 6 # solve for 4 roots
+            mc.fcisolver.nroots = 3 # solve for 4 roots
             emc = mc.casci(mo) # solver for the energy
             e_hf[j].append(emc[0]) # append results
         else:
@@ -39,10 +40,12 @@ for j in range(0,5): # iterate over excited states
 radius = bond # distance to atomic units from angstrom
 # Convert the below to a difference from the far field ground state
 # then convert result to eV
-ground_state = (e_hf[0][::-1]-e_hf[0][1])*27.211386246012257
-first_state = 2*(e_hf[1][::-1]-e_hf[0][1])*27.211386246012257
-second_state = 2*(e_hf[2][::-1]-e_hf[0][1])*27.211386246012257
-third_state = 2*(e_hf[3][::-1]-e_hf[0][1])*27.211386246012257
+E_h = 27.211386246012257
+
+ground_state = (e_hf[0][::-1]-e_hf[0][1])*E_h
+first_state = (e_hf[1][::-1]-e_hf[0][1])*E_h
+second_state = 2*(e_hf[2][::-1]-e_hf[0][1])*E_h
+third_state = 2*(e_hf[3][::-1]-e_hf[0][1])*E_h
 
 # plots of the system
 from matplotlib import pyplot as plt
@@ -56,7 +59,7 @@ plt.xlabel("Bond Distance (angstrom)")
 plt.ylabel("Bond Energy (eV)")
 plt.title("Potential Energy curves for CaH excited states")
 plt.show()
-
+plt.savefig("CaH_potentials.png")
 
 
 """ 
@@ -87,7 +90,7 @@ plt.plot(bond, lambda_1[::-1],label="1st to Ground")
 plt.plot(bond, lambda_2[::-1],label="2nd to Ground")
 plt.plot(bond, lambda_3[::-1],label="3rd to Ground")
 plt.legend()
-plt.show()
+plt.savefig("Lambda_spread.png")
 
 
 
