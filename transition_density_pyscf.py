@@ -1,19 +1,23 @@
 import numpy as np
 from pyscf import gto, scf, mcscf
+from pyscf import gto, mp, mcscf, dft, tddft
+from pyscf.mcscf import dmet_cas
+from pyscf import gto, scf, cc
+
 # Bond seperation lengths in angstrom
-bond = np.arange(1.0, 10.0, 0.25)
+bond = np.arange(1.0, 10.0, 0.05)
 dm_init = None
 
 # results list, includes ground state and excited states
-e_hf = [[],[],[],[]]
+e_hf = [[],[]]
 
 # Main iteration loop
-for j in range(0,5): # iterate over excited states
+for j in range(0,3): # iterate over excited states
     for r in reversed(bond): # iterate over bond lengths. Start out and work in for stability
         # Define the CaH molecule with the ccpvdz basis set
         mol = gto.M(atom=[['Ca', 0, 0, 0],
-                          ['H', r, 0, 0],
-                          ['H' ,r, 0 , 0.737]],
+                          ['H', r, 0, -0.3865],
+                          ['H' ,r, 0 , 0.3865]],
                       basis='ccpvdz',
                       spin = 0
                     )
@@ -21,19 +25,20 @@ for j in range(0,5): # iterate over excited states
         mf = scf.RHF(mol).run()
         # define the excited state
         state_id = j
-        # Run the Complete Active Space SCF. 3 spaces with 3 electrons
-        mc = mcscf.CASSCF(mf, 4, 4).state_specific_(state_id)
-        mc.verbose = 2
         # For the excited states, need to change the solver
         if state_id > 0:
-            mc.kernel() # excited state solve
-            mo = mc.mo_coeff # molecular orbitals
-            mc.fcisolver.nroots = 3 # solve for 4 roots
-            emc = mc.casci(mo) # solver for the energy
-            e_hf[j].append(emc[0]) # append results
+            ao_labels = ['Ca 4pz', 'Ca 4py', 'Ca 4s',' Ca 4px']
+            ncas, nelecas, mo = dmet_cas.guess_cas(mf, mf.make_rdm1(), ao_labels)
+            mycas = mcscf.CASSCF(mf, ncas, nelecas).state_specific_(state_id)
+            mycas.verbose = 2
+            mycas.frozen = 6 # Freeze the inner 6 orbitals to save on computational effort
+            res = mycas.kernel(mo)
+            #mycas.analyze()
+            e_hf[j].append(res[0]) # append results
         else:
-            emc = mc.kernel()[0] # Ground state solve
-            e_hf[j].append(emc) # append results
+            mycc = cc.CCSD(mf).run()
+            et = mycc.ccsd_t()
+            e_hf[j].append(mycc.e_tot+et)
 
 
 
@@ -44,7 +49,7 @@ E_h = 27.211386246012257
 
 ground_state = (e_hf[0][::-1]-e_hf[0][1])*E_h
 first_state = (e_hf[1][::-1]-e_hf[0][1])*E_h
-second_state = 2*(e_hf[2][::-1]-e_hf[0][1])*E_h
+second_state = (e_hf[2][::-1]-e_hf[0][1])*E_h
 third_state = 2*(e_hf[3][::-1]-e_hf[0][1])*E_h
 
 # plots of the system
@@ -57,9 +62,9 @@ plt.plot(radius, third_state,label="3rd State")
 plt.legend()
 plt.xlabel("Bond Distance (angstrom)")
 plt.ylabel("Bond Energy (eV)")
-plt.title("Potential Energy curves for CaH excited states")
+plt.title("Potential Energy curves for Ca I and H_2 excited states")
 plt.show()
-plt.savefig("CaH_potentials.png")
+plt.savefig("CaH_2potentials.png")
 
 
 """ 
@@ -81,22 +86,14 @@ factor = 45.56335252907954
 # wavelength in nm
 lambda_1 = factor/(2*dist_1)
 lambda_2 = factor/(2*dist_2)
-lambda_3 = factor/(2*dist_3)
+#lambda_3 = factor/(2*dist_3)
 
 
 # plot results
 plt.clf()
-plt.plot(bond, lambda_1[::-1],label="1st to Ground")
+plt.plot(bond[0:-4], lambda_1[0:-4][::-1],label="1st to Ground")
 plt.plot(bond, lambda_2[::-1],label="2nd to Ground")
 plt.plot(bond, lambda_3[::-1],label="3rd to Ground")
 plt.legend()
+plt.show()
 plt.savefig("Lambda_spread.png")
-
-
-
-
-
-
-
-
-
