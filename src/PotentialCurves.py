@@ -37,14 +37,13 @@ def calculate_energy(r) -> float:
     """
     neutralMolecule     = pyscf.M(atom = [
                                     ['Ca', (0,0,0)], 
-                                    ['H', (r,0,0.3865)],
-                                    ['H', (r,0,-0.3865)]], 
-                                    basis = 'cc-pvtz-dk', 
-                                    verbose = 4, 
-                                    spin = 0, 
+                                    ['H', (r,0,0)]],
+                                    basis = 'sto3g', 
+                                    verbose = 3, 
+                                    spin = 1, 
                                     symmetry = True)
     
-    neutralMoleculeHF   = scf.RHF(neutralMolecule).run()
+    neutralMoleculeHF   = scf.UHF(neutralMolecule).run()
 
     logObject               =   logger.new_logger(neutralMoleculeHF)                # Creates a new logger object
     orbitals,_,stability,_  =   neutralMoleculeHF.stability(return_status = True)   # Returns four variables: Internal MO, External MO, Internal Stability, External Stability
@@ -60,7 +59,7 @@ def calculate_energy(r) -> float:
         sys.exit(-1)
     
     # Now start Post-HF calculations
-    neutralMoleculeCC           =   cc.RCCSD(neutralMoleculeHF).set(conv_tol = 1e-7, direct = True)
+    neutralMoleculeCC           =   cc.UCCSD(neutralMoleculeHF).set(conv_tol = 1e-7, direct = True)
     neutralMoleculeCC.run()
     neutralMoleculeCC_results   =   neutralMoleculeCC.kernel()
     neutralMoleculeCC_CCSDT     =   neutralMoleculeCC.ccsd_t()   
@@ -98,8 +97,8 @@ def calculate_excited(r: float,state_id: int) -> float:
     excitedMolecule     = pyscf.M(atom = [
                                     ['Ca', (0,0,0)], 
                                     ['H', (r,0,0)]], 
-                                    basis = 'cc-pvtz-dk', 
-                                    verbose = 4, 
+                                    basis = 'sto3g',  
+                                    verbose = 3, 
                                     spin = 1, 
                                     symmetry = True)
     excitedMoleculeHF   = scf.UHF(excitedMolecule).run()
@@ -220,32 +219,60 @@ def run_excited_sim(start, stop, step, state):
     return excited_vec
 
 if __name__=="__main__":
+    # Interatomic distance range
     start = 1.75
-    stop = 6.0
-    step = 0.05
+    stop = 10.0
+    step = 0.25
+
     # Calculate curves
     bond, ground_results = run_ground_sim(start,stop,step)
-    #excited_results0 = run_excited_sim(start,stop,step,0)
-    #excited_results1 = run_excited_sim(start,stop,step,1)
-    #excited_results2 = run_excited_sim(start,stop,step,2)
-    #excited_results3 = run_excited_sim(start,stop,step,3)
-    #excited_results4 = run_excited_sim(start,stop,step,4)
+    excited_results0 = run_excited_sim(start,stop,step,0)
+    excited_results1 = run_excited_sim(start,stop,step,1)
+    excited_results2 = run_excited_sim(start,stop,step,2)
+    excited_results3 = run_excited_sim(start,stop,step,3)
+    excited_results4 = run_excited_sim(start,stop,step,4)
+
     # Set the far field as 0 for all curves
     zero_point = ground_results[1]
     ground_results = ground_results - zero_point
-    #excited_results0 = excited_results0 - zero_point
-    #excited_results1 = excited_results1 - zero_point
-    #excited_results2 = excited_results2 - zero_point
-    #excited_results3 = excited_results3 - zero_point
-    #excited_results4 = excited_results4 - zero_point
+    excited_results0 = excited_results0 - zero_point
+    excited_results1 = excited_results1 - zero_point
+    excited_results2 = excited_results2 - zero_point
+    excited_results3 = excited_results3 - zero_point
+    excited_results4 = excited_results4 - zero_point
 
     # plot the results
     plt.clf()
     plot_curve(bond, ground_results,"CCSD(T) Ground State")
-    #plot_curve(bond, excited_results0,"MCSCF Ground State")
-    #plot_curve(bond, excited_results1,"MCSCF First State")
-    #plot_curve(bond, excited_results2,"MCSCF Second State")
-    #plot_curve(bond, excited_results3,"MCSCF Third State")
-    #plot_curve(bond, excited_results4,"MCSCF Fourth State")
+    plot_curve(bond, excited_results0,"MCSCF Ground State")
+    plot_curve(bond, excited_results1,"MCSCF First State")
+    plot_curve(bond, excited_results2,"MCSCF Second State")
+    plot_curve(bond, excited_results3,"MCSCF Third State")
+    plot_curve(bond, excited_results4,"MCSCF Fourth State")
     plt.legend(loc='best')
+    plt.show()
+
+    difference0 = np.array(excited_results0) - np.array(ground_results)
+    difference1 = np.array(excited_results1) - np.array(ground_results)
+    difference2 = np.array(excited_results2) - np.array(ground_results)
+    difference3 = np.array(excited_results3) - np.array(ground_results)
+    difference4 = np.array(excited_results4) - np.array(ground_results)
+
+    factor = 45.56335252907954
+
+    lambda0 = factor/difference0
+    lambda1 = factor/difference1
+    lambda2 = factor/difference2
+    lambda3 = factor/difference3
+    lambda4 = factor/difference4
+
+    plt.clf()
+    plt.plot(bond,lambda0[::-1],label = "MCSCF Ground")
+    plt.plot(bond,lambda1[::-1],label = "MCSCF First")
+    plt.plot(bond,lambda2[::-1],label = "MCSCF Second")
+    plt.plot(bond,lambda3[::-1],label = "MCSCF Third")
+    plt.plot(bond,lambda4[::-1],label = "MCSCF Fourth")
+    plt.xlabel("Bond Distance (Angstrom)")
+    plt.ylabel("Resonant Wavelength (nm)")
+    plt.legend(loc="best")
     plt.show()
