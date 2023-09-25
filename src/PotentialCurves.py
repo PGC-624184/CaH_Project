@@ -222,40 +222,52 @@ def run_excited_sim(start, stop, step, state):
 
 if __name__=="__main__":
     # Interatomic distance range
-    start = 1.75
-    stop = 10.0
-    step = 0.5
+    start = 1.0
+    stop = 31.0
+    step = 1.0
 
     # Calculate curves
     bond, ground_results = run_ground_sim(start,stop,step)
     excited_results0 = run_excited_sim(start,stop,step,0)
+    excited_results1 = run_excited_sim(start,stop,step,1)
 
     
     # Hartrees Energy (a.u.) to eV
     E_h = 27.211386246012257
     # Set the far field as 0 for all curves
-    zero_point = ground_results[1]
+    zero_point = ground_results[0]
     ground_results = (ground_results - zero_point)*E_h
     excited_results0 = (excited_results0 - zero_point)*E_h
+    excited_results1 = (excited_results1 - zero_point)*E_h
+
+    prob_vec = np.array([0.00055401, 0.00221319, 0.00496234, 0.00876217, 0.01353832, 0.01917199,
+ 0.02549343, 0.03227965, 0.03925735, 0.04611208, 0.05250395, 0.05808918,
+ 0.06254624, 0.06560384, 0.06706758, 0.06684156, 0.06494141, 0.0614962,
+ 0.05673791, 0.05097928, 0.04458266, 0.03792396, 0.03135694, 0.02518257,
+ 0.01962765, 0.01483469, 0.01086317, 0.00770047, 0.00527918, 0.00349703])
    
 
     # plot the results
     plt.clf()
     plot_curve(bond, ground_results,"CCSD(T) Ground State")
     plot_curve(bond, excited_results0,"MCSCF Ground State")
+    plot_curve(bond, excited_results1,"MCSCF First State")
     plt.legend(loc='best')
     plt.show()
 
     difference0 = np.array(excited_results0) - np.array(ground_results)
+    difference1 = np.array(excited_results1) - np.array(ground_results)
    
     # This is the conversion factor to calculate wavelength, which is c*h/energy
     factor = 45.56335252907954    
 
     lambda0 = factor/difference0
-
+    lambda1 = factor/difference1
+    
     plt.clf()
-    plt.plot(bond,lambda0[::-1],label = "MCSCF Ground")
-    plt.xlabel("Bond Distance (Angstrom)")
-    plt.ylabel("Resonant Wavelength (nm)")
+    plt.scatter(lambda0[::-1],prob_vec*10,label = "MCSCF Ground")
+    plt.scatter(lambda1[::-1],prob_vec*10,label = "MCSCF First")
+    plt.xlabel("Wavelength (nm)")
+    plt.ylabel("Probability (1/nm)")
     plt.legend(loc="best")
     plt.show()
