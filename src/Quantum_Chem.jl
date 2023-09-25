@@ -29,7 +29,7 @@ E_h = (ħ*c_0*α)/(a_0) |> u"eV"
 λ_habli = c_0*h/((dist*E_h)) |> u"nm"
 λ_habli2 = c_0*h/((dist2*E_h)) |> u"nm"
 
-c_0/((2.9u"eV")/h) |> u"nm"
+c_0*h/((2.9u"eV")) |> u"nm"
 
 # Ca I normal line core (NIST Transitional database)
 λ=422.673u"nm"

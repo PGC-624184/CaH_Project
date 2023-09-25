@@ -2,6 +2,7 @@ import pyscf    as pyscf
 import numpy    as np
 import sys      as sys
 from pyscf      import gto, scf, ao2mo, fci, ci, cc, mcscf
+from pyscf import tdscf
 from pyscf.mcscf import dmet_cas
 from pyscf.lib  import logger
 import matplotlib.pyplot as plt
@@ -101,6 +102,7 @@ def calculate_excited(r: float,state_id: int) -> float:
                                     verbose = 3, 
                                     spin = 1, 
                                     symmetry = True)
+
     excitedMoleculeHF   = scf.UHF(excitedMolecule).run()
     ao_labels = ['Ca 4pz', 'Ca 4py', 'Ca 4s',' Ca 4px', 'Ca 5s']
     ncas, nelecas, mo = dmet_cas.guess_cas(excitedMoleculeHF, excitedMoleculeHF.make_rdm1(), ao_labels)
@@ -139,7 +141,7 @@ def plot_curve(bond,energy,label):
     """
     plt.plot(bond, energy[::-1],label=label)
     plt.xlabel("Bond length (Angstrom)")
-    plt.ylabel("Energy (Hartrees)")
+    plt.ylabel("Energy (eV)")
     plt.legend()
 
 
@@ -179,7 +181,7 @@ def run_ground_sim(start, stop, step):
         ground_energy = calculate_energy(r)
         ground_vec.append(ground_energy)
 
-    return bond, ground_vec
+    return np.array(bond), np.array(ground_vec)
 
 def run_excited_sim(start, stop, step, state):
     """
@@ -216,62 +218,43 @@ def run_excited_sim(start, stop, step, state):
     for r in reversed(bond):
         excited_energy = calculate_excited(r, state)
         excited_vec.append(excited_energy)
-    return excited_vec
+    return np.array(excited_vec)
 
 if __name__=="__main__":
     # Interatomic distance range
     start = 1.75
     stop = 10.0
-    step = 0.25
+    step = 0.5
 
     # Calculate curves
     bond, ground_results = run_ground_sim(start,stop,step)
     excited_results0 = run_excited_sim(start,stop,step,0)
-    excited_results1 = run_excited_sim(start,stop,step,1)
-    excited_results2 = run_excited_sim(start,stop,step,2)
-    excited_results3 = run_excited_sim(start,stop,step,3)
-    excited_results4 = run_excited_sim(start,stop,step,4)
 
+    
+    # Hartrees Energy (a.u.) to eV
+    E_h = 27.211386246012257
     # Set the far field as 0 for all curves
     zero_point = ground_results[1]
-    ground_results = ground_results - zero_point
-    excited_results0 = excited_results0 - zero_point
-    excited_results1 = excited_results1 - zero_point
-    excited_results2 = excited_results2 - zero_point
-    excited_results3 = excited_results3 - zero_point
-    excited_results4 = excited_results4 - zero_point
+    ground_results = (ground_results - zero_point)*E_h
+    excited_results0 = (excited_results0 - zero_point)*E_h
+   
 
     # plot the results
     plt.clf()
     plot_curve(bond, ground_results,"CCSD(T) Ground State")
     plot_curve(bond, excited_results0,"MCSCF Ground State")
-    plot_curve(bond, excited_results1,"MCSCF First State")
-    plot_curve(bond, excited_results2,"MCSCF Second State")
-    plot_curve(bond, excited_results3,"MCSCF Third State")
-    plot_curve(bond, excited_results4,"MCSCF Fourth State")
     plt.legend(loc='best')
     plt.show()
 
     difference0 = np.array(excited_results0) - np.array(ground_results)
-    difference1 = np.array(excited_results1) - np.array(ground_results)
-    difference2 = np.array(excited_results2) - np.array(ground_results)
-    difference3 = np.array(excited_results3) - np.array(ground_results)
-    difference4 = np.array(excited_results4) - np.array(ground_results)
-
-    factor = 45.56335252907954
+   
+    # This is the conversion factor to calculate wavelength, which is c*h/energy
+    factor = 45.56335252907954    
 
     lambda0 = factor/difference0
-    lambda1 = factor/difference1
-    lambda2 = factor/difference2
-    lambda3 = factor/difference3
-    lambda4 = factor/difference4
 
     plt.clf()
     plt.plot(bond,lambda0[::-1],label = "MCSCF Ground")
-    plt.plot(bond,lambda1[::-1],label = "MCSCF First")
-    plt.plot(bond,lambda2[::-1],label = "MCSCF Second")
-    plt.plot(bond,lambda3[::-1],label = "MCSCF Third")
-    plt.plot(bond,lambda4[::-1],label = "MCSCF Fourth")
     plt.xlabel("Bond Distance (Angstrom)")
     plt.ylabel("Resonant Wavelength (nm)")
     plt.legend(loc="best")

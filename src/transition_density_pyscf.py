@@ -42,25 +42,6 @@ for j in range(0,3): # iterate over excited states
             e_hf[j].append(mycc.e_tot+et)
 
 
-results = []
-from pyscf import gto, scf, dft, tddft
-bond = np.arange(1.0, 6.0, 0.5)
-for r in reversed(bond):
-    mol = gto.M(atom=[['Ca', 0.0, 0.0, 0.0],
-                      ['H' ,r, 0.0 , 0.0]],
-                        basis='ccpvdz',
-                        spin = 1,
-                        verbose = 4)
-    mf = dft.RKS(mol)
-    mf.xc = 'b3lyp'
-    mf.kernel()
-
-    mytd = tddft.TDDFT(mf)
-    mytd.nstates = 5
-    res = mytd.kernel()
-    mytd.analyze()
-    results.append(res[0])
-
 radius = bond # distance to atomic units from angstrom
 # Convert the below to a difference from the far field ground state
 # then convert result to eV
