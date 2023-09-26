@@ -230,14 +230,18 @@ if __name__=="__main__":
     bond, ground_results = run_ground_sim(start,stop,step)
     excited_results0 = run_excited_sim(start,stop,step,0)
     excited_results1 = run_excited_sim(start,stop,step,1)
-
+    print(ground_results-excited_results0)
     
     # Hartrees Energy (a.u.) to eV
     E_h = 27.211386246012257
     # Set the far field as 0 for all curves
     zero_point = ground_results[0]
     ground_results = (ground_results - zero_point)*E_h
+    print(ground_results)
+    
     excited_results0 = (excited_results0 - zero_point)*E_h
+    print(excited_results0)
+
     excited_results1 = (excited_results1 - zero_point)*E_h
 
     prob_vec = np.array([0.00055401, 0.00221319, 0.00496234, 0.00876217, 0.01353832, 0.01917199,
@@ -256,6 +260,7 @@ if __name__=="__main__":
     plt.show()
 
     difference0 = np.array(excited_results0) - np.array(ground_results)
+
     difference1 = np.array(excited_results1) - np.array(ground_results)
    
     # This is the conversion factor to calculate wavelength, which is c*h/energy
