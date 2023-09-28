@@ -9,61 +9,11 @@ import matplotlib.pyplot as plt
 bond = np.arange(1.0, 10.0, 0.05)
 dm_init = None
 
-# results list, includes ground state and excited states
-e_hf = [[],[],[]]
-
-# Main iteration loop
-for j in range(0,3): # iterate over excited states
-    for r in reversed(bond): # iterate over bond lengths. Start out and work in for stability
-        # Define the CaH molecule with the ccpvdz basis set
-        mol = gto.M(atom=[['Ca', 0.0, 0.0, 0.0],
-                          ['H' ,r, 0.0 , 0.0]],
-                      basis='def2-svp',
-                      spin = 1
-                    )
-        # Reduced Hartree Fock solution as an initial case           
-        mf = scf.UHF(mol).run()
-        # define the excited state
-        state_id = j
-        # For the excited states, need to change the solver
-        if state_id > 0:
-            ao_labels = ['Ca 4pz', 'Ca 4py', 'Ca 4s',' Ca 4px', 'Ca 5s', 'Ca 5pz', 'Ca 5py',' Ca 5px']
-            ncas, nelecas, mo = dmet_cas.guess_cas(mf, mf.make_rdm1(), ao_labels)
-            mycas = mcscf.CASSCF(mf, ncas, nelecas).state_specific_(state_id)
-            mycas.verbose = 2
-            mycas.frozen = 6 # Freeze the inner 6 orbitals to save on computational effort (1s 2s 2p[xyz] 3s 3p[xyz] 4s)
-            res = mycas.kernel(mo)
-            #mycas.analyze()
-            e_hf[j].append(res[0]) # append results
-        else:
-            mycc = cc.CCSD(mf).run()
-            et = mycc.ccsd_t()
-            e_hf[j].append(mycc.e_tot+et)
-
-
 radius = bond # distance to atomic units from angstrom
+
 # Convert the below to a difference from the far field ground state
 # then convert result to eV
 E_h = 27.211386246012257
-
-ground_state = (e_hf[0][::-1]-e_hf[0][1])*E_h
-first_state = (e_hf[1][::-1]-e_hf[0][1])*E_h
-second_state = (e_hf[2][::-1]-e_hf[0][1])*E_h
-third_state = 2*(e_hf[3][::-1]-e_hf[0][1])*E_h
-
-# plots of the system
-from matplotlib import pyplot as plt
-plt.clf()
-plt.plot(radius, ground_state[0:-3],label="Ground State")
-plt.plot(radius, first_state,label="1st State")
-plt.plot(radius, second_state,label="2nd State")
-plt.plot(radius, third_state,label="3rd State")
-plt.legend()
-plt.xlabel("Bond Distance (angstrom)")
-plt.ylabel("Bond Energy (eV)")
-plt.title("Potential Energy curves for Ca I and H_2 excited states")
-plt.show()
-plt.savefig("CaH_2potentials.png")
 
 
 """ 
@@ -73,48 +23,45 @@ get funkier the closer you are.
 
 Rest of the code is WIP and so results may not be real
 """
-
-# distance between lines
-dist_1 = np.array(e_hf[1]) - np.array(e_hf[0])
-dist_2 = np.array(e_hf[2]) - np.array(e_hf[0])
-dist_3 = np.array(e_hf[3]) - np.array(e_hf[0])
-
-# This is h*c/E_hartrees when the result is converted to nanometers
-factor = 45.56335252907954
-
-# wavelength in nm
-lambda_1 = factor/(2*dist_1)
-lambda_2 = factor/(2*dist_2)
-#lambda_3 = factor/(2*dist_3)
-
-
-# plot results
-plt.clf()
-plt.plot(bond[0:-4], lambda_1[0:-4][::-1],label="1st to Ground")
-plt.plot(bond, lambda_2[::-1],label="2nd to Ground")
-plt.plot(bond, lambda_3[::-1],label="3rd to Ground")
-plt.legend()
-plt.show()
-plt.savefig("Lambda_spread.png")
-
-
-r = 27.83897594220896
-r = 10
+n = 28.437353657002053
 from functools import reduce
 import numpy
 from pyscf import gto, scf, dft, tddft
-mol = gto.M(atom=[  ['Ca', 0,     0,     0],],
-                    #['H',15,     0,    -0.3865],
-                    #['H',15,     0,    0.3865]],
-                    basis='def2-tzvp',
+
+for r in reversed(bond):
+    mol = gto.M(atom=[  ['Ca', 0,     0,     0],
+                    ['H', n,0,0.3865],
+                    ['H', n,0,-0.3865],
+                    ],
+                    basis='def2-QZVPP',
                     spin = 0,
                     verbose = 4)
-        # Reduced Hartree Fock solution as an initial case           
-mf = dft.RKS(mol)
-mf.xc = 'b3lyp'
-mf.kernel()
+    # Reduced Hartree Fock solution as an initial case           
+    mf = dft.RKS(mol)
+    mf.xc = 'wB97X_V'
+    mf.kernel()
 
-mytd = tddft.TDDFT(mf)
-mytd.nstates = 15
-mytd.kernel()
-mytd.analyze()
+    mytd = tddft.TDDFT(mf)
+    mytd.singlet = False
+    mytd.nstates = 15
+    mytd.kernel()
+    mytd.analyze()
+
+    # Need to collect energy values and then convert to wavelength
+    
+    # store results in array
+
+
+## Example https://github.com/jamesETsmith/2022_simons_collab_pyscf_workshop/blob/main/demos/05_Excited_States.ipynb
+from pyscf import gto, scf, dft, tddft,cc
+import py3Dmol
+
+# import data into dataframe - check if pd is row or col major
+df = pd.DataFrame(data)
+
+
+# plot the curves
+import plotly.express as px
+import nbformat
+fig = px.line(df, x="Excitation Energy (eV)", y="Intensity", markers=True, color="Exchange-Correlation Functional")
+fig.show()

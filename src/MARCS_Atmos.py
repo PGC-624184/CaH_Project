@@ -107,7 +107,7 @@ def import_model_struct(file, skiprows, skipfooter):
     try:
         cols = pd.read_csv(file, delim_whitespace=True, skiprows=skiprows-1, skipfooter=skipfooter+55, engine='python').columns
         df = pd.read_csv(file, delim_whitespace=True, skipfooter=skipfooter, skiprows=skiprows, engine='python', header=None, names=cols)
-        df = df.drop(['lgTauR', 'lgTau5', 'Prad', 'Pturb','Pg'],axis=1)
+        df = df.drop(['lgTau5', 'Prad', 'Pturb','Pg'],axis=1)
         return df
     except FileNotFoundError:
         print("We seem to have a problem Houston!")
@@ -304,12 +304,11 @@ if __name__ == "__main__":
     H2 = mean_interatomic_distance(df,'H2', abund)
     H = mean_interatomic_distance(df,'H', abund)
     H2_number_density = number_density(df,'H2',abund)
-    Ca = mean_interatomic_distance(df, 'Ca',abund)
+    H_number_density = number_density(df,'H',abund)
+    H2 = mean_interatomic_distance(df, 'H2',abund)
+    print(H_number_density[41])
+    print(H[41])
+    print(df.lgTauR)
 
-    r = np.linspace(1.0,30.,30) * u.angstrom
-    W = interparticle_distribution(r,H2_number_density[-1])
-    print(W/sum(W))
-    plt.clf()
-    plt.plot(r,(W/sum(W)))
-    plt.show()
+   
 
