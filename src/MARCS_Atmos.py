@@ -298,7 +298,7 @@ if __name__ == "__main__":
     """
 
     #MARCS partial pressures
-    MARCS_file = "reference_stellar_atmospheres/t2700_g+5.5_z+0.00.mod"
+    MARCS_file = "../reference_stellar_atmospheres/t2700_g+5.5_z+0.00.mod"
     df = import_MARCS(MARCS_file)
     abund = create_abundances(MARCS_file)
     H2 = mean_interatomic_distance(df,'H2', abund)
@@ -308,7 +308,7 @@ if __name__ == "__main__":
     H2 = mean_interatomic_distance(df, 'H2',abund)
     print(H_number_density[41])
     print(H[41])
-    print(df.lgTauR)
+    #print(df.lgTauR)
 
    
 
