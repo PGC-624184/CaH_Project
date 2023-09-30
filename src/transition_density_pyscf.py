@@ -33,14 +33,13 @@ def run_computation(r: float,states: int):
         - Oscillator (np.ndarray): Oscillator strengths for the line profile.
      """
     mol = gto.M(atom=[  ['Ca', 0,     0,     0],
-                    ['H', r,0,0.3865],
-                    ['H', r,0,-0.3865],
+                    ['H', r,0, 0.0],
                     ],
                     basis='def2-QZVPP', # This is a high order DFT basis set that reproduces the expected transitions
-                    spin = 0,
+                    spin = 1,
                     verbose = 3)
     # Reduced Hartree Fock solution as an initial case           
-    mf = dft.RKS(mol)
+    mf = dft.UKS(mol)
     # set the functional exchange
     mf.xc = 'wB97X_V'
     mf.kernel()

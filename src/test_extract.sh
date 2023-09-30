@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #factor
-factor=45.56335252907954   
+factor=45.56335252907954
+start=4.0   
 # Create an output file
 output_file="../output.csv"
 
@@ -13,5 +14,6 @@ for input_file in "$datapath"/*.csv; do
     value_9=$(awk 'NR==9 {print $2}' "$input_file")
     result=$(echo $factor/$value_7 - $factor/$value_9 | bc -l )
     # Append the result to the output file
-    echo "$result " >> "$output_file"
+    echo "$start, $result " >> "$output_file"
+    start=$(echo $start + 0.25 | bc -l)
 done
