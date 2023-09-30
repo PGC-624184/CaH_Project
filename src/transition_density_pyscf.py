@@ -37,7 +37,7 @@ def run_computation(r: float,states: int):
                     ],
                     basis='def2-QZVPP', # This is a high order DFT basis set that reproduces the expected transitions
                     spin = 1,
-                    verbose = 3)
+                    verbose = 4)
     # Reduced Hartree Fock solution as an initial case           
     mf = dft.UKS(mol)
     # set the functional exchange
@@ -63,12 +63,12 @@ if __name__=="__main__":
     """
     The number of excited states to calculate for the system. States 6,7,8 correspond to the three 4P orbitals one of the 4s electrons can jump into. This corresponds to the first excited state, with the prior excited states relating to rotational/vibrational molecule states for the system and are not the ones we are particularly interested in (for the moment).
     """
-    states = 15
+    states = 20
     
     # Run the computation
     for r in tqdm(radius):
         Energies, oscillator = run_computation(r,states)
-        filename = "data/Coarse_curve_data_Ca_H2_r{r}.csv".format(r=r)
+        filename = "data/CaH/Coarse_curve_data_Ca_H_r{r}.csv".format(r=r)
         df_E = pd.DataFrame({'Energies': Energies, 'f':oscillator})
         df_E.to_csv(filename,sep='\t')
     
