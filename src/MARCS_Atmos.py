@@ -4,6 +4,7 @@ import pandas as pd
 import astropy.units as u
 import astropy.constants.codata2018 as c
 import matplotlib.pyplot as plt
+from Prob_dist_QM import interparticle_distribution
 
 def import_NextGen_pressure(file,skiprows,skipfooter):
     """
@@ -265,28 +266,6 @@ def mean_interatomic_distance(df,species,abund):
     n = number_density(df,species,abund)
     r_0 = ((4*np.pi*n/3)**(-1/3))
     return (r_0).to(u.angstrom)
-
-def interparticle_distribution(r,N):
-    """
-    Calculate the interparticle distribution for a given system.
-
-    This function computes the interparticle distribution for a system with a given
-    radial distance 'r' and a specified number of particles 'N'. It applies a
-    mathematical formula and returns the result in units of inverse angstroms.
-
-    Args:
-        r (astropy.Quantity): The radial distance at which to calculate the distribution.
-        N (int): The number of particles in the system.
-
-    Returns:
-        astropy.Quantity: The interparticle distribution in inverse angstroms.
-
-    Note:
-        - This function is designed for a specific mathematical calculation and requires
-          the 'r' parameter to be an astropy Quantity with units (e.g., u.angstrom).
-        - Ensure 'r' is correctly defined with units before using this function.
-    """
-    return (N*4*np.pi*r**2*np.exp(-(4/3)*np.pi*r**3*N)).to(u.angstrom**(-1))
 
 if __name__ == "__main__":
     # NextGen File - WIP and mostly ignore for now

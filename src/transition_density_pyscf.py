@@ -1,12 +1,10 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-from functools import reduce
 from pyscf import gto, dft, tddft
 from tqdm import tqdm
 
 
-def run_computation(r: float,states: int):
+def run_computation(r: float,states: int, functional="b3lyp",basis="sto3g", atom=[['Li',0,0,0]],spin=0):
     """
     Perform electronic structure calculations for molecules with varying bond separations. 
     
@@ -32,16 +30,18 @@ def run_computation(r: float,states: int):
             Columns correspond to different electronic states.
         - Oscillator (np.ndarray): Oscillator strengths for the line profile.
      """
-    mol = gto.M(atom=[  ['Ca', 0,     0,     0],
-                    ['H', r,0, 0.0],
-                    ],
-                    basis='def2-QZVPP', # This is a high order DFT basis set that reproduces the expected transitions
-                    spin = 1,
-                    verbose = 4)
-    # Reduced Hartree Fock solution as an initial case           
-    mf = dft.UKS(mol)
+    mol = gto.M(atom=atom,
+                    basis=basis, # This is a high order DFT basis set that reproduces the expected transitions
+                    spin = spin,
+                    verbose = 3)
+    # Reduced Hartree Fock solution as an initial case
+
+    if mol.spin == 1:           
+        mf = dft.UKS(mol)
+    else:
+        mf = dft.RKS(mol)
     # set the functional exchange
-    mf.xc = 'wB97X_V'
+    mf.xc = functional
     mf.kernel()
 
     mytd = tddft.TDDFT(mf) # Time Dependant Density Functional Theory
@@ -59,11 +59,16 @@ def run_computation(r: float,states: int):
 if __name__=="__main__":
 
     # The range of interatomic distance between the Ca and the H2 molecule
-    radius = np.arange(4,20,0.25)
+    radius = np.arange(1.5,4.25,0.25)
     """
     The number of excited states to calculate for the system. States 6,7,8 correspond to the three 4P orbitals one of the 4s electrons can jump into. This corresponds to the first excited state, with the prior excited states relating to rotational/vibrational molecule states for the system and are not the ones we are particularly interested in (for the moment).
     """
     states = 20
+    basis = 'def2-QZVPP'
+    functional = 'wB97X_V'
+    atom=[['Ca', 0,     0,     0],
+        ['H', r,0, 0.0]]
+    spin=1
     
     # Run the computation
     for r in tqdm(radius):
