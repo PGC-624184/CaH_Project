@@ -285,9 +285,11 @@ if __name__ == "__main__":
     H2_number_density = number_density(df,'H2',abund)
     H_number_density = number_density(df,'H',abund)
     H2 = mean_interatomic_distance(df, 'H2',abund)
-    print(H_number_density[41])
-    print(H[41])
-    #print(df.lgTauR)
+    print(H_number_density)
+    #print(H[41])
+    #print(H2_number_density)
+    #print(H2[41])
+    print(np.array(df.lgTauR))
 
    
 
