@@ -1,30 +1,78 @@
+--------------
 09/10/23 Notes
-
+--------------
 Added the last bit to account for number density across different layers in the atmospheres. Broadening is computed as a pi, pi* and sigma+ bond RMS average, with a probability distribution taken from Mike and Hubeny and Mihalas. Plot was along tau rosseland, but this doesn't actually matter as it's an arbitrary x axis choice from the MARCS models.
 
+--------------
 08/10/23 Notes
+--------------
 Updated the data extract files - originally this took the last part of the CSV name and extracted data from set rows in the files. However, if the TDDFT calculations for a given state did not converge, they are left out of the results in the python code.
 
 The new method is a little cleaner, and selects values via the oscillator strength, before restricting the wavelength range to between 300-500nm, which is where there is some close broadening effects. The ground state at this close spacing looks to approximate the bonding energy - repulsive orbitals are higher energy, attractive orbitals are lower.
 
 Can clearly see the sigma+, pi and pi* results for H2. Need to move the files in "Bad Data" back into the respective folders noting the new extract method.
 
+--------------
+05/10/23 Notes
+--------------
+Adding Unit tests for a range of functions. Documenting code. Mike noted that the calculation of broadening needs to be done w.r.t. the sole Ca I transition. This changes the broadening plot from two exponentials with a knee, to a single exponential in linear space. 
+
+--------------
+01/09/23 Notes
+--------------
+
+Just testing plots in python vs gnuplot - gnuplot was easier to use as I could ssh forward the plot to my laptop after running the calculations on my desktop computer.
+
+--------------
+30/09/23 Notes
+--------------
+RESULTS! Broadening plot in images folder shows CaH2 is a bigger effect than CaH with a much shallower slope. 
+Moving some files around, setting up CaH computation
+
+--------------
+29/09/23 Notes
+--------------
+
+added data, started on the WIP extraction script from the csv files. decided to use bash to extract the values, given each CSV file contains the radial value, and the exported data contains both the energy difference and oscillator strengths. Just taking the rows with the corresponding values I'm interested in.
+
+--------------
+28/09/23 Notes
+--------------
+Adding Spencer's code to github.
+
+--------------
+26/09/23 Notes
+--------------
+Raised the difference in ground state energies with Thomas - he said that it was strange there was a constant difference between the ground states calculated. I'm also unsure about why this is the case, but found that the TDDFT codes in PySCF example github pages that is used to calculate the excited states. Also noting that the kernel().analyze() functions provide the wavelength and oscillator strength. Chose a very high end DFT basis set and exchange correlation functionals to provide the expected transition at long distances. The def2-QZVPP basis set and wB97X_V exchange correlation provide a Ca I transition from the 4s to 4p transition seen. Given wavelength from calculations is 422.7 nm, which is very close to the 422.673 taken from the NIST ASD database.
+
+--------------
+25/09/23 Notes
+--------------
+Noted that the probability distributions are dependent on number density, used the MARC atmosphere models as the extract of different partial pressures is a lot easier than the NextGen/PHOENIX codes, though I have included the starts of functions to extract the results. I can't foresee any significant difference between the two models, and will assume that a MARCS model provides the rough scaling expected.
+
+--------------
+24/09/23 Notes
+--------------
+Running the calculations for the H2 system. Noted that there is a difference between the CCSD(T) calculations and the CASSCF for the ground state - something isn't working here and I need to change how I'm actually addressing the transition. PySCF website also has the Time-dependent Density Functional Theory as another method to calculate excited states and oscillator strengths - redoing the calcs now that this seems to be an easier method to get accurate results.
+
+--------------
+22/09/23 Notes
+--------------
+Found software to visualise orbitals extracted from the CASSCF calculations. Noted the difficulty here is actually about what numerical number of the transition corresponds to which transition. 
 
 
-
-
-
-
-
+--------------
 20/09/23 Notes
-
+--------------
 Tried to rebuild pyscf with the OpenBLAS library on the main desktop machine, not sure if working correctly or whether this is a consequence of modelling the molecular hydrogen solution. Should have some intial coarse results by the end of the day, and can plot the potential. I expect a purely repulsive potential at further interatomic distances.
 
 Also wrote up the Van der Waals interation probability distribution based on the example in the Stellar atmospheres and atomic radiation processes notes. Expect that phi(delta nu) ~ delta nu ^(-1/2). Further examination on how the linear stark effect in included (whether by a straight convolution with natural broadening) or if this is included within the lorentzian profile (the latter would be significantly easier bc then I can use the Voigt Profile code from class).
 
 Started on the literature review for the final submission, will update the git repo as appropriate. Continuing on tasks outlined yesterday.
 
+--------------
 19/09/2023 Notes
+--------------
 Had lecture where mike went over problem solving techniques. Spencer and I agreed to split work on how we approach the rest of the problem - He will look at the distribution for the nearest neighbour approximation while I continue to refine the CaH and Ca - H_2 calculations.
 
 Brought Spencer up to speed on how to do excited states i.e. post Hartree-Fock methods required to determine excited states.
