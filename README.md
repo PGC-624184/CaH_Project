@@ -61,8 +61,6 @@ This project is licensed under the MIT License.
 
 - PySCF: the Python-based simulations of chemistry framework, Q. Sun, T. C. Berkelbach, N. S. Blunt, G. H. Booth, S. Guo, Z. Li, J. Liu, J. McClain, S. Sharma, S. Wouters, and G. K.-L. Chan, WIREs Comput. Mol. Sci. 8, e1340 (2018)
 
-- Spencer Collivati - for providing assistance developing this computational suite
-
 - Mike Ireland - for providing basis of the problem and providing relevant stellar atmosphere models
 
 - Thomas Nordlander - for providing relevant data files and providing advice on what is physical for the system
