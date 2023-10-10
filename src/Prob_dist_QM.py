@@ -73,11 +73,11 @@ if __name__ == "__main__":
     r_Atmos = [ -5.,  -4.8, -4.6, -4.4, -4.2, -4.,  -3.8, -3.6, -3.4, -3.2, -3.,  -2.9, -2.8, -2.7,
  -2.6, -2.5, -2.4, -2.3, -2.2, -2.1, -2.,  -1.9, -1.8, -1.7, -1.6, -1.5, -1.4, -1.3,
  -1.2, -1.1, -1.,  -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, -0.,   0.1,
-  0.2,  0.3,  0.4,  0.5,  0.6,  0.7,  0.8,  0.9,  1.,   1.2,  1.4,  1.6,  1.8,  2.]*u.km
+  0.2,  0.3,  0.4,  0.5,  0.6,  0.7,  0.8,  0.9,  1.,   1.2,  1.4,  1.6,  1.8,  2.]
     N_H = 9.041570094762417e+17*u.cm**(-3)
     factor=45.56335252907954
-    filename = "Ca_H2_test.csv"
-    filename1 = "Ca_H_test.csv"
+    filename = "data/Ca_H2_test.csv"
+    filename1 = "data/Ca_H_test.csv"
     df = read_data(filename)
     df2 = read_data(filename1,skiprows=6)
 
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         #print("The average Ca H2 x Broadening is: {:2.3}".format(average_x))
         #print("The average Ca H2 y Broadening is: {:2.3} ".format(average_y))
         #print("The average Ca H2 z Broadening is: {:2.3} ".format(average_z))
-        print("The average Ca H2 Broadening is: {:2.6} ".format(np.sqrt(average_x**2+average_y**2+average_z**2)))
+        #print("The average Ca H2 Broadening is: {:2.6} ".format(np.sqrt(average_x**2+average_y**2+average_z**2)))
         avg_broaden_H2.append(np.sqrt(average_x**2+average_y**2+average_z**2))
     
     for depth in n_H:
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         #print("The average Ca H x Broadening is: {:2.3}".format(H_average_x))
         #print("The average Ca H y Broadening is: {:2.3} ".format(H_average_y))
         #print("The average Ca H z Broadening is: {:2.3} ".format(H_average_z))
-        print("The average Ca H Broadening is: {:2.5} ".format(np.sqrt(H_average_x**2+H_average_y**2+H_average_z**2)))
+        #print("The average Ca H Broadening is: {:2.5} ".format(np.sqrt(H_average_x**2+H_average_y**2+H_average_z**2)))
         avg_broaden_H.append(np.sqrt(H_average_x**2+H_average_y**2+H_average_z**2))
 
     
@@ -122,6 +122,12 @@ if __name__ == "__main__":
     plt.title("Probability Weighted Quasi-Static Calcium Broadening\n for a Proxima Centauri-like Atmosphere")
     plt.legend()
     plt.show()
+    print("The average Ca H2 Continuum Broadening is: {:2.5} nm ".format(np.mean(np.array(avg_broaden_H2[-16::]))))
+    print("The average Ca H Continuum Broadening is: {:2.5} nm".format(np.mean(np.array(avg_broaden_H[-16::]))))
+
+
+
+
     
 
     
