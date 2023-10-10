@@ -27,14 +27,20 @@ cd src && python MARCS_Atmos.py
 To generate the potential curves data, you can run the following:
 
 ```bash
-python transitional_density_pyscf.py
+cd src &&python transitional_density_pyscf.py
 ```
 Which will write results to the data folder, for which subsequent analysis can occur.
 
-You can use the following to extract the relevant energy differences and oscillation strengths:
+You can use the following to extract the relevant energy transition differences (_column 2 between 0.09 and 0.12_) and oscillation strengths (_column 3 greater than 0.4_) to briefly check the results:
 
 ```bash
-cd data && awk 'NR>=7 && NR<=9' Coarse_curve_data_Ca_H2_r6.25.csv && cd ..
+echo -e "Delta_E \t\t f" && awk '$3>=0.4 && $2>=0.09 && $2<= 0.12 {print $2,$3}' Coarse_curve_data_Ca_H2_r16.25.csv
+```
+
+Or run the ./CaH_extract.sh and the ./CaH2_extract.sh to do this automatically and create csv files with the final results,
+
+```bash
+cd src && ./CaH_extract.sh
 ```
 
 ## Contributing
@@ -53,4 +59,11 @@ This project is licensed under the MIT License.
 
 ## Acknowledgements
 
-While this repo is currently private, if it becomes public then this will be updated as applicable.
+- PySCF: the Python-based simulations of chemistry framework, Q. Sun, T. C. Berkelbach, N. S. Blunt, G. H. Booth, S. Guo, Z. Li, J. Liu, J. McClain, S. Sharma, S. Wouters, and G. K.-L. Chan, WIREs Comput. Mol. Sci. 8, e1340 (2018)
+
+- Spencer Collivati - for providing assistance developing this computational suite
+
+- Mike Ireland - for providing basis of the problem and providing relevant stellar atmosphere models
+
+- Thomas Nordlander - for providing relevant data files and providing advice on what is physical for the system
+
