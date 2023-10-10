@@ -37,7 +37,7 @@ class TestDataReading(unittest.TestCase):
 
     def test_file_reading(self):
         # Test that the function successfully reads a file
-        filename = "../Ca_H2_output.csv"  # Replace with the actual file path
+        filename = "data/Ca_H2_output.csv"  # Replace with the actual file path
         result = read_data(filename)
 
         self.assertIsInstance(result, pd.DataFrame)
@@ -45,18 +45,22 @@ class TestDataReading(unittest.TestCase):
 
     def test_column_renaming(self):
         # Test that the function renames the columns correctly
-        filename = "../Ca_H2_output.csv"  # Replace with the actual file path
+        filename = "data/Ca_H2_output.csv"  # Replace with the actual file path
         result = read_data(filename)
 
         self.assertIn("Radius", result.columns)
-        self.assertIn("Broadening", result.columns)
+        self.assertIn("Broadening_x", result.columns)
+        self.assertIn("Broadening_y", result.columns)
+        self.assertIn("Broadening_z", result.columns)
 
     def test_broadening_conversion(self):
         # Test that the function converts the Broadening column to an array
-        filename = "../Ca_H2_output.csv"  # Replace with the actual file path
+        filename = "data/Ca_H2_output.csv"  # Replace with the actual file path
         result = read_data(filename)
 
-        self.assertTrue(isinstance(result.Broadening.values, np.ndarray))
+        self.assertTrue(isinstance(result.Broadening_x.values, np.ndarray))
+        self.assertTrue(isinstance(result.Broadening_y.values, np.ndarray))
+        self.assertTrue(isinstance(result.Broadening_z.values, np.ndarray))
 
     def test_invalid_filename(self):
         # Test that the function handles invalid filenames correctly
@@ -92,7 +96,7 @@ class TestCreateAbundances(unittest.TestCase):
         # Test the creation of elemental abundances DataFrame
 
         # Define test inputs
-        file = "../reference_stellar_atmospheres/t2700_g+5.5_z+0.00.mod"
+        file = "reference_stellar_atmospheres/t2700_g+5.5_z+0.00.mod"
 
         # Call the function under test
         result = create_abundances(file)

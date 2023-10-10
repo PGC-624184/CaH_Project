@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Create an output file
-output_file="../Ca_H_test.csv"
+output_file="../data/Ca_H_test.csv"
 
 datapath="../data/CaH"
 # Loop through the list of input files
