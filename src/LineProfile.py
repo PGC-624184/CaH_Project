@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import astropy.constants as c
 import astropy.units as u
 
-p_p = [1,0.0001]
-p_s = [1,0.001]
-p_x = [2,0.5]
+p_p = [1, 0.0001]
+p_s = [1, 0.001]
+p_x = [2, 0.5]
 
 """# Parameters
 T = 2500*u.K
@@ -254,16 +254,16 @@ data_l = """4195.476276060388, 2643099.8402933823
 4259.822070452911, 2604629.4836117853
 """
 
-data_m_wavelength = np.array(data_m.replace(",","").rsplit()[0::2],dtype=float)
-data_m_inv_phi = np.array(data_m.replace(",","").rsplit()[1::2],dtype=float)
-data_m_phi = 1/data_m_inv_phi
+data_m_wavelength = np.array(data_m.replace(",", "").rsplit()[0::2], dtype=float)
+data_m_inv_phi = np.array(data_m.replace(",", "").rsplit()[1::2], dtype=float)
+data_m_phi = 1 / data_m_inv_phi
 
-data_l_wavelength = np.array(data_l.replace(",","").rsplit()[0::2],dtype=float)
-data_l_inv_phi = np.array(data_l.replace(",","").rsplit()[1::2],dtype=float)
-data_l_phi = 1/data_l_inv_phi
+data_l_wavelength = np.array(data_l.replace(",", "").rsplit()[0::2], dtype=float)
+data_l_inv_phi = np.array(data_l.replace(",", "").rsplit()[1::2], dtype=float)
+data_l_phi = 1 / data_l_inv_phi
 
-plt.plot(data_l_wavelength,1/data_l_phi,label="Lorentzian")
-plt.plot(data_m_wavelength,1/data_m_phi,label="Modified Lorentzian")
+plt.plot(data_l_wavelength, 1 / data_l_phi, label="Lorentzian")
+plt.plot(data_m_wavelength, 1 / data_m_phi, label="Modified Lorentzian")
 plt.xlabel(r"Wavelength, $\AA$")
 plt.ylabel(r"Line Profile, $\AA^{-1}$")
 plt.yscale("log")
