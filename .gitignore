@@ -1,10 +1,12 @@
 # Ignore the Line profile files
-/src/LineProfile.py
+
 
 # Ignore pycache files
 /src/__pycache__/*
 /__pycache__/*
 /.vscode/*
+/.venv/*
 
 # Ignore the orbitals folder 
 /data/orbitals/*
+/data/*
