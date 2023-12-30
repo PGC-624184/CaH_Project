@@ -80,7 +80,14 @@ if __name__ == "__main__":
     # Run the computation
     for r_val in tqdm(radius):
         molecule = [["Ca", 0, 0, 0], ["H", r_val, 0, 0.0]]
-        Energies, osc = run_computation(r_val, states=comp_states,functional=func,basis=base,atom=molecule,spin=spin_m)
+        Energies, osc = run_computation(
+            r_val,
+            states=comp_states,
+            functional=func,
+            basis=base,
+            atom=molecule,
+            spin=spin_m,
+        )
         filename = "data/CaH/Coarse_curve_data_Ca_H_r{r}.csv".format(r=r_val)
         df_E = pd.DataFrame({"Energies": Energies, "f": osc})
         df_E.to_csv(filename, sep="\t")

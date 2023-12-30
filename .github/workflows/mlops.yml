@@ -1,4 +1,4 @@
-name: Python application with Github Actions
+name: CI/CD workflow for the CaH Project
 
 on: [push]
 jobs:
@@ -22,7 +22,3 @@ jobs:
       - name: Format code
         run: |
           make format
-
-      - name: Build container
-        run: |
-          make build
