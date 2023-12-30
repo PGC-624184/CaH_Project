@@ -6,7 +6,4 @@ format:
 	find src -name '*.py' -exec black {} +
 lint:
 	#lint
-	pylint --disable=R,C src/*.py
-#test:
-	#test
-	#python -m pytest -vv --cov=test
+	- pylint --disable=R,C src/*.py

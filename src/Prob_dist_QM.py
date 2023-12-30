@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import astropy.units as u
 import matplotlib.pyplot as plt
-import os
 
 
 def read_data(filename, skiprows=None, names=range(6)):
@@ -232,22 +231,22 @@ if __name__ == "__main__":
     ]
     N_H = 9.041570094762417e17 * u.cm ** (-3)
     factor = 45.56335252907954
-    filename = "data/Ca_H2_test.csv"
-    filename1 = "data/Ca_H_test.csv"
-    df = read_data(filename)
-    df2 = read_data(filename1, skiprows=6)
+    file_name = "data/Ca_H2_test.csv"
+    file_name1 = "data/Ca_H_test.csv"
+    H2_df = read_data(file_name)
+    H_df = read_data(file_name1, skiprows=6)
 
     avg_broaden_H = []
     avg_broaden_H2 = []
 
     for depth in n_H2:
         p_H2 = []
-        radial = df.Radius * u.angstrom
+        radial = H2_df.Radius * u.angstrom
         for val in radial:
             p_H2.append(interparticle_distribution(val, depth).value)
-        average_x = np.sum(df.Broadening_x * p_H2)
-        average_y = np.sum(df.Broadening_y * p_H2)
-        average_z = np.sum(df.Broadening_z * p_H2)
+        average_x = np.sum(H2_df.Broadening_x * p_H2)
+        average_y = np.sum(H2_df.Broadening_y * p_H2)
+        average_z = np.sum(H2_df.Broadening_z * p_H2)
         # print("The average Ca H2 x Broadening is: {:2.3}".format(average_x))
         # print("The average Ca H2 y Broadening is: {:2.3} ".format(average_y))
         # print("The average Ca H2 z Broadening is: {:2.3} ".format(average_z))
@@ -256,13 +255,13 @@ if __name__ == "__main__":
 
     for depth in n_H:
         p_H = []
-        radial2 = df2.Radius * u.angstrom
+        radial2 = H_df.Radius * u.angstrom
         for val in radial2:
             p_H.append(interparticle_distribution(val, depth).value)
 
-        H_average_x = np.sum(df2.Broadening_x * p_H)
-        H_average_y = np.sum(df2.Broadening_y * p_H)
-        H_average_z = np.sum(df2.Broadening_z * p_H)
+        H_average_x = np.sum(H_df.Broadening_x * p_H)
+        H_average_y = np.sum(H_df.Broadening_y * p_H)
+        H_average_z = np.sum(H_df.Broadening_z * p_H)
         # print("The average Ca H x Broadening is: {:2.3}".format(H_average_x))
         # print("The average Ca H y Broadening is: {:2.3} ".format(H_average_y))
         # print("The average Ca H z Broadening is: {:2.3} ".format(H_average_z))

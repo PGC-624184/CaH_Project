@@ -1,10 +1,7 @@
 import numpy as np
-import os
 import pandas as pd
 import astropy.units as u
 import astropy.constants.codata2018 as c
-import matplotlib.pyplot as plt
-from Prob_dist_QM import interparticle_distribution
 
 
 def import_NextGen_pressure(file, skiprows, skipfooter):
@@ -428,7 +425,6 @@ def mean_interatomic_distance(df, species, abund):
 
 
 if __name__ == "__main__":
-    # NextGen File - WIP and mostly ignore for now
     """
     NextGen_file = "reference_stellar_atmospheres/lte027-5.5-0.0a+0.0.BT-Settl.6"
     skiprows = 28854
@@ -438,15 +434,15 @@ if __name__ == "__main__":
 
     # MARCS partial pressures
     MARCS_file = "reference_stellar_atmospheres/t2700_g+5.5_z+0.00.mod"
-    df = import_MARCS(MARCS_file)
-    abund = create_abundances(MARCS_file)
-    H2 = mean_interatomic_distance(df, "H2", abund)
-    H = mean_interatomic_distance(df, "H", abund)
-    H2_number_density = number_density(df, "H2", abund)
-    H_number_density = number_density(df, "H", abund)
-    H2 = mean_interatomic_distance(df, "H2", abund)
+    atmos_df = import_MARCS(MARCS_file)
+    abundances = create_abundances(MARCS_file)
+    H2 = mean_interatomic_distance(atmos_df, "H2", abundances)
+    H = mean_interatomic_distance(atmos_df, "H", abundances)
+    H2_number_density = number_density(atmos_df, "H2", abundances)
+    H_number_density = number_density(atmos_df, "H", abundances)
+    H2 = mean_interatomic_distance(atmos_df, "H2", abundances)
     print(H_number_density)
     # print(H[41])
     # print(H2_number_density)
     # print(H2[41])
-    print(np.array(df.lgTauR))
+    print(np.array(atmos_df.lgTauR))

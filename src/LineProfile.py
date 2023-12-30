@@ -1,7 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import astropy.constants as c
-import astropy.units as u
 
 p_p = [1, 0.0001]
 p_s = [1, 0.001]
