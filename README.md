@@ -4,17 +4,10 @@ This repository provides a Python-based guide on calculating the transitional br
 
 ## Prerequisites
 
-Before you begin, make sure you have the following prerequisites installed on your system:
-
-- [Python](https://www.python.org/downloads/)
-- [PySCF](http://pyscf.org/)
-- [NumPy](https://numpy.org/)
-- [Matplotlib](https://matplotlib.org/)
-
-You can install these packages using Python's package manager, `pip`. For example:
+Before you begin, make sure you collect all the required python packages via
 
 ```bash
-pip install pyscf numpy matplotlib
+make install
 ```
 ## Usage
 
@@ -27,7 +20,7 @@ cd src && python MARCS_Atmos.py
 To generate the potential curves data, you can run the following:
 
 ```bash
-cd src &&python transitional_density_pyscf.py
+cd src && python transitional_density_pyscf.py
 ```
 Which will write results to the data folder, for which subsequent analysis can occur.
 
@@ -50,8 +43,9 @@ If you'd like to contribute to this project, please follow the standard GitHub w
 1. Fork the repository.
 2. Create a new branch for your feature or bug fix.
 3. Make your changes and commit them.
-4. Push your changes to your fork.
-5. Create a pull request to merge your changes into the main repository.
+4. Run the ```make format``` and then ```make lint``` commands to clean up your code.
+5. Push your changes to your fork.
+6. Create a pull request to merge your changes into the main repository.
 
 ## License
 
