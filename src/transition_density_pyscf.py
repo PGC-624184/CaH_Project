@@ -2,6 +2,89 @@ import numpy as np
 import pandas as pd
 from pyscf import gto, dft, tddft
 from tqdm import tqdm
+import os
+
+
+def rotation_matrix(theta, phi):
+    """
+    Create rotation matrix for H2 molecule orientation.
+    
+    theta: polar angle (0 to pi)
+    phi: azimuthal angle (0 to 2*pi)
+    
+    Returns 3x3 rotation matrix
+    """
+    # Rotation around y-axis by theta
+    Ry = np.array([
+        [np.cos(theta), 0, np.sin(theta)],
+        [0, 1, 0],
+        [-np.sin(theta), 0, np.cos(theta)]
+    ])
+    
+    # Rotation around z-axis by phi
+    Rz = np.array([
+        [np.cos(phi), -np.sin(phi), 0],
+        [np.sin(phi), np.cos(phi), 0],
+        [0, 0, 1]
+    ])
+    
+    return Rz @ Ry
+
+
+def generate_h2_orientations(r_ca_h2, n_theta=5, n_phi=8, r_h_h=0.74):
+    """
+    Generate H2 molecular orientations around Ca atom using spherical sampling.
+    
+    Args:
+        r_ca_h2: Distance from Ca to H2 center of mass (angstrom)
+        n_theta: Number of polar angle samples (5-10 recommended)
+        n_phi: Number of azimuthal angle samples (8-16 recommended)
+        r_h_h: H-H bond length (0.74 Å is equilibrium)
+    
+    Returns:
+        List of molecule configurations: [[[Ca], [H1], [H2]], weight]
+        Weights are for proper spherical averaging (sin(theta) factor)
+    """
+    configurations = []
+    
+    # Use Gauss-Legendre quadrature for theta (more efficient than uniform)
+    theta_points, theta_weights = np.polynomial.legendre.leggauss(n_theta)
+    # Map from [-1, 1] to [0, pi]
+    thetas = np.arccos(theta_points)
+    
+    # Uniform sampling in phi
+    phis = np.linspace(0, 2*np.pi, n_phi, endpoint=False)
+    phi_weight = 2 * np.pi / n_phi
+    
+    # H2 molecule initially along x-axis, centered at origin
+    h2_vector = np.array([r_h_h / 2, 0, 0])
+    
+    for i, (theta, theta_w) in enumerate(zip(thetas, theta_weights)):
+        for phi in phis:
+            # Rotate H2 molecule
+            R = rotation_matrix(theta, phi)
+            h1_local = R @ h2_vector
+            h2_local = R @ (-h2_vector)
+            
+            # Translate to distance r_ca_h2 from Ca (at origin)
+            # Place H2 center of mass along z-axis at distance r
+            com_position = np.array([0, 0, r_ca_h2])
+            h1_pos = com_position + h1_local
+            h2_pos = com_position + h2_local
+            
+            # Create molecule configuration
+            molecule = [
+                ["Ca", 0, 0, 0],
+                ["H", float(h1_pos[0]), float(h1_pos[1]), float(h1_pos[2])],
+                ["H", float(h2_pos[0]), float(h2_pos[1]), float(h2_pos[2])]
+            ]
+            
+            # Weight includes theta_weight (from quadrature) and phi weight
+            weight = theta_w * phi_weight / (4 * np.pi)
+            
+            configurations.append((molecule, weight))
+    
+    return configurations
 
 
 def run_computation(
@@ -9,85 +92,171 @@ def run_computation(
     states=10,
     functional="b3lyp",
     basis="sto3g",
-    atom=["Li", 0, 0, 0],
+    atom=None,
     spin=0,
 ):
     """
-    Perform electronic structure calculations for molecules with varying bond separations.
-
-    This function calculates electronic energies for molecules with varying bond lengths. It performs a series of electronic structure calculations using quantum chemistry methods for each specified bond length in the range [start, stop) with the given step size. For each bond length, it constructs a molecule consisting of calcium ('Ca') and hydrogen ('H') atoms separated by the specified bond length and calculates the electronic energies of the system.
-
-    It's assumed that the molecular hydrogen is bound at the most likely length, but the dependence of this on how the system behaves has not been examined. Molecular orientation of the H_2 molecule is additionally ignored for the first sets of calculations
-
-    The electronic structure calculations include:
-        - Building a molecular configuration.
-        - Solving the electronic Schrödinger equation using density functional theory (DFT) with the 'wB97X_V' exchange-correlation functional.
-        - Performing time-dependent density functional theory (TDDFT) calculations to compute excited states.
-        - Storing the electronic energies in the 'E_mat' NumPy array.
-
-    The function returns two numpy arrays, one containing the energies (difference between the ground and excited state in atomic energy units) and another numpy array with the oscillator strength for the particular orbital.
-
+    Perform electronic structure calculations for a molecular configuration.
+    
     Args:
-        - r (float): The bond separation length in angstrom.
-        - states (int): The number of excited states to compute for the molecule.
-
+        r: Bond separation length (for reference, not used directly)
+        states: Number of excited states to compute
+        functional: DFT functional
+        basis: Basis set
+        atom: Atomic coordinates [[element, x, y, z], ...]
+        spin: Spin multiplicity
+    
     Returns:
-        - Energies (np.ndarray): A 2D NumPy array containing electronic energies.
-            Rows correspond to different bond lengths.
-            Columns correspond to different electronic states.
-        - Oscillator (np.ndarray): Oscillator strengths for the line profile.
+        tuple: (energies, oscillator_strengths) or (None, None) if failed
     """
-    mol = gto.M(
-        atom=atom,
-        basis=basis,  # This is a high order DFT basis set that reproduces the expected transitions
-        spin=spin,
-        verbose=3,
-    )
-    # Reduced Hartree Fock solution as an initial case
+    try:
+        mol = gto.M(
+            atom=atom,
+            basis=basis,
+            spin=spin,
+            verbose=0,  # Reduce verbosity for many calculations
+        )
+        
+        if mol.spin == 1:
+            mf = dft.UKS(mol)
+        else:
+            mf = dft.RKS(mol)
+        
+        mf.xc = functional
+        mf.kernel()
+        
+        if not mf.converged:
+            print(f"Warning: SCF did not converge for r={r}")
+            return None, None
+        
+        mytd = tddft.TDDFT(mf)
+        mytd.singlet = True
+        mytd.nstates = states
+        results = mytd.kernel()
+        
+        oscillator = mytd.oscillator_strength(gauge="length")
+        
+        return results[0], oscillator
+        
+    except Exception as e:
+        print(f"Calculation failed for r={r}: {e}")
+        return None, None
 
-    if mol.spin == 1:
-        mf = dft.UKS(mol)
-    else:
-        mf = dft.RKS(mol)
-    # set the functional exchange
-    mf.xc = functional
-    mf.kernel()
 
-    mytd = tddft.TDDFT(mf)  # Time Dependant Density Functional Theory
-    mytd.singlet = True  # Calculate the singlet states (not forbidden transitions)
-    mytd.nstates = states  # the number of states to calculate
-    results = mytd.kernel()
-    mytd.analyze()
-    oscillator = mytd.oscillator_strength(
-        gauge="length"
-    )  # Other option is velocity gauge, but this seems to be the right results
-    return results[0], oscillator
+def compute_orientation_averaged(
+    r_val,
+    states=20,
+    functional="wB97X_V",
+    basis="def2-QZVPP",
+    spin=1,
+    n_theta=5,
+    n_phi=8,
+):
+    """
+    Compute orientation-averaged energies and oscillator strengths.
+    
+    Args:
+        r_val: Ca to H2 center-of-mass distance
+        states: Number of excited states
+        functional: DFT functional
+        basis: Basis set
+        spin: Spin multiplicity
+        n_theta: Number of polar angle samples (5-10 for good balance)
+        n_phi: Number of azimuthal angle samples (8-16 recommended)
+    
+    Returns:
+        tuple: (averaged_energies, averaged_oscillators)
+    """
+    # Generate orientations
+    configurations = generate_h2_orientations(r_val, n_theta, n_phi)
+    
+    print(f"\n  Averaging over {len(configurations)} orientations...")
+    
+    # Storage for results
+    all_energies = []
+    all_oscillators = []
+    all_weights = []
+    
+    # Compute for each orientation
+    for molecule, weight in tqdm(configurations, 
+                                  desc=f"  r={r_val:.2f}Å",
+                                  leave=False):
+        energies, osc = run_computation(
+            r_val,
+            states=states,
+            functional=functional,
+            basis=basis,
+            atom=molecule,
+            spin=spin,
+        )
+        
+        if energies is not None:
+            all_energies.append(energies)
+            all_oscillators.append(osc)
+            all_weights.append(weight)
+    
+    if not all_energies:
+        print(f"  All calculations failed for r={r_val}")
+        return None, None
+    
+    # Convert to arrays for weighted averaging
+    all_energies = np.array(all_energies)  # Shape: (n_orientations, n_states)
+    all_oscillators = np.array(all_oscillators)
+    all_weights = np.array(all_weights)
+    
+    # Normalize weights (should already sum to 1, but just in case)
+    all_weights = all_weights / all_weights.sum()
+    
+    # Weighted average
+    avg_energies = np.average(all_energies, axis=0, weights=all_weights)
+    avg_oscillators = np.average(all_oscillators, axis=0, weights=all_weights)
+    
+    return avg_energies, avg_oscillators
 
 
-## Example https://github.com/jamesETsmith/2022_simons_collab_pyscf_workshop/blob/main/demos/05_Excited_States.ipynb
-
-if __name__ == "__main__":
-    # The range of interatomic distance between the Ca and the H2 molecule
+def main():
+    """Main execution with orientation averaging."""
+    
+    # Configuration
     radius = np.arange(1.5, 4.25, 0.25)
-    """
-    The number of excited states to calculate for the system. States 6,7,8 correspond to the three 4P orbitals one of the 4s electrons can jump into. This corresponds to the first excited state, with the prior excited states relating to rotational/vibrational molecule states for the system and are not the ones we are particularly interested in (for the moment).
-    """
     comp_states = 20
     base = "def2-QZVPP"
     func = "wB97X_V"
     spin_m = 1
-
-    # Run the computation
-    for r_val in tqdm(radius):
-        molecule = [["Ca", 0, 0, 0], ["H", r_val, 0, 0.0]]
-        Energies, osc = run_computation(
+    
+    # Orientation sampling (adjust for accuracy vs speed)
+    # n_theta=5, n_phi=8 gives 40 orientations (good starting point)
+    # n_theta=7, n_phi=12 gives 84 orientations (better accuracy)
+    n_theta = 5  
+    n_phi = 8
+    
+    print(f"Configuration: {len(radius)} radii × {n_theta*n_phi} orientations")
+    print(f"Total calculations: {len(radius) * n_theta * n_phi}")
+    
+    # Create output directory
+    os.makedirs("data/CaH2_oriented", exist_ok=True)
+    
+    # Run computations
+    for r_val in tqdm(radius, desc="Computing Ca-H₂ curves"):
+        avg_energies, avg_osc = compute_orientation_averaged(
             r_val,
             states=comp_states,
             functional=func,
             basis=base,
-            atom=molecule,
             spin=spin_m,
+            n_theta=n_theta,
+            n_phi=n_phi,
         )
-        filename = "data/CaH/Coarse_curve_data_Ca_H_r{r}.csv".format(r=r_val)
-        df_E = pd.DataFrame({"Energies": Energies, "f": osc})
-        df_E.to_csv(filename, sep="\t")
+        
+        if avg_energies is not None:
+            filename = f"data/CaH2_oriented/Averaged_curve_data_Ca_H2_r{r_val:.2f}.csv"
+            df_E = pd.DataFrame({
+                "Energies": avg_energies,
+                "f": avg_osc
+            })
+            df_E.to_csv(filename, sep="\t")
+            print(f"✓ Saved: {filename}")
+
+
+if __name__ == "__main__":
+    main()
