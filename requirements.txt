@@ -19,7 +19,7 @@ numpy==1.26.2
 packaging==23.2
 pandas==2.1.4
 pathspec==0.12.1
-Pillow==10.1.0
+Pillow==12.3.0
 platformdirs==4.1.0
 pluggy==1.3.0
 pyerfa==2.0.1.1
